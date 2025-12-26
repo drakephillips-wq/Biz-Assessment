@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Insights Dashboard - Spectacular Smith</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #FFFFFF;
+            color: #1a3a5c;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #D4AF37;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            color: #2B4C7E;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: #5a7a9e;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: #D4AF37;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #5a7a9e;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #E8EFF5;
+            box-shadow: 0 4px 20px rgba(43, 76, 126, 0.08);
+        }
+
+        .card-header {
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2B4C7E;
+            margin-bottom: 8px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: #5a7a9e;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container.tall {
+            height: 400px;
+        }
+
+        /* Insights Section */
+        .insights-section {
+            margin-top: 60px;
+        }
+
+        .insights-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .insights-header h2 {
+            font-size: 36px;
+            font-weight: 800;
+            color: #2B4C7E;
+            margin-bottom: 15px;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .insight-card {
+            background: #FFFFFF;
+            border: 2px solid #7BA3CC;
+            border-radius: 15px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(43, 76, 126, 0.1);
+        }
+
+        .insight-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: #D4AF37;
+        }
+
+        .insight-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .insight-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2B4C7E;
+            margin-bottom: 12px;
+        }
+
+        .insight-description {
+            font-size: 15px;
+            color: #5a7a9e;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .insight-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #E8EFF5;
+        }
+
+        .insight-actions h4 {
+            font-size: 14px;
+            color: #D4AF37;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .insight-actions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .insight-actions li {
+            font-size: 14px;
+            color: #5a7a9e;
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .insight-actions li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #D4AF37;
+            font-weight: bold;
+        }
+
+        /* Key Findings */
+        .key-findings {
+            background: linear-gradient(135deg, #F0F7FF 0%, #E8EFF5 100%);
+            border: 3px solid #2B4C7E;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+        }
+
+        .key-findings h2 {
+            font-size: 32px;
+            font-weight: 800;
+            color: #2B4C7E;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .findings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .finding-item {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .finding-percentage {
+            font-size: 56px;
+            font-weight: 800;
+            color: #D4AF37;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .finding-label {
+            font-size: 16px;
+            color: #2B4C7E;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .findings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar {
+                gap: 20px;
+            }
+
+            .stat-number {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Business Launch Quiz Insights</h1>
+            <p>Comprehensive analysis of 1,417 aspiring entrepreneurs revealing the exact pain points, fears, and blockers preventing them from launching their businesses</p>
+            
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-number">1,417</span>
+                    <span class="stat-label">Total Responses</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">6</span>
+                    <span class="stat-label">Key Questions</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">77%</span>
+                    <span class="stat-label">Need Roadmap</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Findings -->
+        <div class="key-findings">
+            <h2>🎯 Top 3 Blockers Preventing Launch</h2>
+            <div class="findings-grid">
+                <div class="finding-item">
+                    <span class="finding-percentage">77%</span>
+                    <span class="finding-label">Don't Know the Steps to Launch</span>
+                </div>
+                <div class="finding-item">
+                    <span class="finding-percentage">66%</span>
+                    <span class="finding-label">Fear of Marketing Themselves</span>
+                </div>
+                <div class="finding-item">
+                    <span class="finding-percentage">65%</span>
+                    <span class="finding-label">Don't Know What to Sell</span>
+                </div>
+                <div class="finding-item">
+                    <span class="finding-percentage">62%</span>
+                    <span class="finding-label">Trying to Do It Alone</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="dashboard-grid">
+            <!-- Question 1 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Q1: Clarity on What to Sell</h3>
+                    <p class="card-subtitle">65% are stuck on idea clarity</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart1"></canvas>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Q2: Confidence People Will Pay</h3>
+                    <p class="card-subtitle">61% doubt they can get paid</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart2"></canvas>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Q3: Knowledge of Launch Steps</h3>
+                    <p class="card-subtitle">77% don't know where to start</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart3"></canvas>
+                </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Q4: Taking Action vs Thinking</h3>
+                    <p class="card-subtitle">43% have been waiting for YEARS</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart4"></canvas>
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Q5: Comfort with Visibility</h3>
+                    <p class="card-subtitle">66% are scared to post online</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart5"></canvas>
+                </div>
+            </div>
+
+            <!-- Question 6 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Q6: Support & Accountability</h3>
+                    <p class="card-subtitle">62% are doing it completely alone</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart6"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Section -->
+        <div class="insights-section">
+            <div class="insights-header">
+                <h2>💡 Recommended Marketing Actions</h2>
+            </div>
+
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-icon">🗺️</div>
+                    <h3 class="insight-title">Emphasize Your Roadmap</h3>
+                    <p class="insight-description">77% don't know the steps to launch. This is your #1 selling point.</p>
+                    <div class="insight-actions">
+                        <h4>Action Items:</h4>
+                        <ul>
+                            <li>Lead messaging: "Here's the exact step-by-step system"</li>
+                            <li>Create "Day 1 to First Client" content</li>
+                            <li>Show timeline: "Week 1: X, Week 2: Y, Week 3: Z"</li>
+                            <li>Feature testimonials about "finally having a plan"</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon">🤝</div>
+                    <h3 class="insight-title">Sell Community & Accountability</h3>
+                    <p class="insight-description">62% are alone. Position your program as ending their isolation.</p>
+                    <div class="insight-actions">
+                        <h4>Action Items:</h4>
+                        <ul>
+                            <li>"You can't do this alone" messaging</li>
+                            <li>Highlight accountability pods/weekly check-ins</li>
+                            <li>Show community testimonials</li>
+                            <li>Emphasize "we won't let you quit"</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon">📢</div>
+                    <h3 class="insight-title">Address Marketing Fears</h3>
+                    <p class="insight-description">66% are scared of visibility. Teach "authentic marketing".</p>
+                    <div class="insight-actions">
+                        <h4>Action Items:</h4>
+                        <ul>
+                            <li>"Marketing without feeling sleazy" content</li>
+                            <li>Provide done-for-you templates/scripts</li>
+                            <li>Feature introverts who succeeded</li>
+                            <li>Week 3: "How to show up authentically"</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon">⏰</div>
+                    <h3 class="insight-title">Target Chronic Procrastinators</h3>
+                    <p class="insight-description">43% have been waiting YEARS. Use urgency and guilt.</p>
+                    <div class="insight-actions">
+                        <h4>Action Items:</h4>
+                        <ul>
+                            <li>"How long have you been waiting?" messaging</li>
+                            <li>New Year: "2025 or never" angle</li>
+                            <li>Real deadlines (cohort starts, spots filling)</li>
+                            <li>Cost of inaction: "$50K+ lost by waiting"</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon">💰</div>
+                    <h3 class="insight-title">Build Confidence First</h3>
+                    <p class="insight-description">61% doubt people will pay them. Address imposter syndrome upfront.</p>
+                    <div class="insight-actions">
+                        <h4>Action Items:</h4>
+                        <ul>
+                            <li>"You don't need to be #1 expert" messaging</li>
+                            <li>Positioning/packaging training early</li>
+                            <li>Show beginners making $5K-10K</li>
+                            <li>"Your experience IS valuable" content</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon">🎯</div>
+                    <h3 class="insight-title">Help Them Pick ONE Thing</h3>
+                    <p class="insight-description">65% have clarity issues. Week 1 should force a decision.</p>
+                    <div class="insight-actions">
+                        <h4>Action Items:</h4>
+                        <ul>
+                            <li>"Pick your niche in 24 hours" framework</li>
+                            <li>"Your first idea doesn't have to be forever"</li>
+                            <li>Decision-making workshop in challenge</li>
+                            <li>Kill analysis paralysis messaging</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js Configuration
+        const chartColors = {
+            primary: '#2B4C7E',      // Rich deep blue
+            secondary: '#7BA3CC',    // Light blue
+            tertiary: '#D4AF37',     // Gold
+            success: '#4CAF50',
+            danger: '#FF5252',
+            warning: '#FFA726',
+            text: '#5a7a9e',
+            grid: '#E8EFF5'
+        };
+
+        const defaultOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        color: chartColors.text,
+                        font: {
+                            size: 12
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        };
+
+        // Question 1: Clarity
+        new Chart(document.getElementById('chart1'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Know exactly (35%)', 'Completely stuck (27%)', 'Too many ideas (19%)', 'Second-guessing (15%)', 'Keep changing (4%)'],
+                datasets: [{
+                    data: [35.3, 27, 18.6, 15.4, 3.7],
+                    backgroundColor: [
+                        chartColors.primary,
+                        chartColors.danger,
+                        chartColors.warning,
+                        chartColors.secondary,
+                        chartColors.tertiary
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF'
+                }]
+            },
+            options: {
+                ...defaultOptions,
+                plugins: {
+                    ...defaultOptions.plugins,
+                    legend: {
+                        ...defaultOptions.plugins.legend,
+                        display: true
+                    }
+                }
+            }
+        });
+
+        // Question 2: Confidence
+        new Chart(document.getElementById('chart2'), {
+            type: 'bar',
+            data: {
+                labels: ['Absolutely', 'Yes - few clients', 'Maybe - unsure pricing', 'No - fear no customers', 'Probably not'],
+                datasets: [{
+                    label: 'Percentage',
+                    data: [39.2, 23.6, 13.5, 12.4, 11.2],
+                    backgroundColor: chartColors.tertiary,
+                    borderRadius: 8,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...defaultOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: chartColors.text,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: {
+                            color: chartColors.grid
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: chartColors.text,
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Question 3: Roadmap
+        new Chart(document.getElementById('chart3'), {
+            type: 'pie',
+            data: {
+                labels: ['No clue (24%)', 'Clear roadmap (23%)', 'Know first steps (21%)', 'Would waste time (17%)', 'Overwhelmed (16%)'],
+                datasets: [{
+                    data: [23.9, 22.9, 20.5, 16.5, 16.2],
+                    backgroundColor: [
+                        chartColors.danger,
+                        chartColors.primary,
+                        chartColors.secondary,
+                        chartColors.warning,
+                        chartColors.tertiary
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF'
+                }]
+            },
+            options: defaultOptions
+        });
+
+        // Question 4: Procrastination
+        new Chart(document.getElementById('chart4'), {
+            type: 'bar',
+            data: {
+                labels: ['Years waiting', 'Actively working', 'Over 6 months', 'Few months', 'Few weeks'],
+                datasets: [{
+                    label: 'Percentage',
+                    data: [43.2, 27, 16.8, 8.3, 4.8],
+                    backgroundColor: [
+                        chartColors.danger,
+                        chartColors.primary,
+                        chartColors.secondary,
+                        chartColors.warning,
+                        chartColors.tertiary
+                    ],
+                    borderRadius: 8,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: chartColors.text,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: {
+                            color: chartColors.grid
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: chartColors.text
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Question 5: Visibility
+        new Chart(document.getElementById('chart5'), {
+            type: 'doughnut',
+            data: {
+                labels: ["I'm ready (34%)", 'Hesitate - uncomfortable (27%)', "I'm nervous (22%)", 'Freeze - terrified (12%)', 'Panic - fraud (6%)'],
+                datasets: [{
+                    data: [33.7, 26.9, 22, 12, 5.5],
+                    backgroundColor: [
+                        chartColors.primary,
+                        chartColors.secondary,
+                        chartColors.warning,
+                        chartColors.danger,
+                        '#D32F2F'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF'
+                }]
+            },
+            options: defaultOptions
+        });
+
+        // Question 6: Support
+        new Chart(document.getElementById('chart6'), {
+            type: 'bar',
+            data: {
+                labels: ['Stuck Googling alone', 'Barely anyone', 'Some people', 'Few people', 'Strong community'],
+                datasets: [{
+                    label: 'Percentage',
+                    data: [32.6, 29.5, 13.4, 13.4, 11.1],
+                    backgroundColor: [
+                        chartColors.danger,
+                        chartColors.warning,
+                        chartColors.secondary,
+                        chartColors.primary,
+                        chartColors.success
+                    ],
+                    borderRadius: 8,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...defaultOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: chartColors.text,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: {
+                            color: chartColors.grid
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: chartColors.text,
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
